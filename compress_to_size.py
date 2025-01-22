@@ -89,7 +89,7 @@ def compress(inFile, size=10, audio=None, preset='fast', safe=True, start_time=N
         output_args['to'] = stop_time
     print(output_args)
 
-    ffmpeg.input(inFile).output('NUL', **output_args).global_args('-y').run()   # Save first pass to NUL and skip overwrite prompt
+    out, err = ffmpeg.input(inFile).output('NUL', **output_args).global_args('-y').run()   # Save first pass to NUL and skip overwrite prompt
 
     # Pass 2
     output_args['pass'] = 2
@@ -103,6 +103,8 @@ def compress(inFile, size=10, audio=None, preset='fast', safe=True, start_time=N
     # Clean up temporary files
     os.remove('ffmpeg2pass-0.log')
     os.remove('ffmpeg2pass-0.log.mbtree')
+
+    return (out, err)
 
 # Convert "HH:MM:SS" to seconds
 def string_to_seconds(string):

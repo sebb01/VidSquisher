@@ -1,22 +1,27 @@
 import customtkinter as ctk
 import compress_to_size
 import os
+import pathlib
+import threading
+import traceback
 import urllib.request
 import zipfile
-import threading
+
+WIDTH = 900
+HEIGHT = 500
 
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("green")
 
 root = ctk.CTk()
-root.geometry("400x500")
+root.geometry(f"{WIDTH}x{HEIGHT}")
 
 def add_ffmpeg_to_path():
     # Add ffmpeg to PATH
     if os.path.exists(os.path.join(os.curdir, "ffmpeg")):
-        ffmpeg_folder = os.path.join(os.curdir, "ffmpeg")
+        ffmpeg_folder = os.path.join(pathlib.Path().resolve(), "ffmpeg")
         ffmpeg_folder = os.path.join(ffmpeg_folder, "bin")
-        os.environ["PATH"] += ffmpeg_folder + os.pathsep
+        os.environ["PATH"] += ffmpeg_folder + ";"
 
 def download_ffmpeg():
     # Get ffmpeg
@@ -47,8 +52,14 @@ def compress_thread():
     label_status.configure(text="Compressing...", text_color="black")
     fname_in = entry_in.get()
     fname_out = entry_out.get()
-    compress_to_size.compress(fname_in, outFile=fname_out)
-    label_status.configure(text="Compression complete!", text_color="green")
+    try:
+        compress_to_size.compress(fname_in, outFile=fname_out)
+    except Exception:
+        label_status.configure(text="Compression failed!", text_color="red")
+        printlog(f"PATH: {os.environ["PATH"]}\n\nWHERE ffprobe output:\n{os.popen('WHERE ffprobe').read()}\n\n{traceback.format_exc()}")
+        return
+    printlog(f"Compression complete!\nOutput file: {fname_out}", text_color="green")
+    label_status.configure(text=f"Compression complete!", text_color="green")
 
 def browse():
     fname_in = ctk.filedialog.askopenfilename()
@@ -60,8 +71,15 @@ def browse():
     entry_out.delete(0, ctk.END)
     entry_out.insert(0, fname_out)
 
+def printlog(text, text_color="red"):
+    console.configure(state="normal")
+    console.configure(text_color=text_color)
+    console.delete(1.0, ctk.END)
+    console.insert(1.0, text + "\n")
+    console.configure(state="disabled")
+
 frame = ctk.CTkFrame(master=root)
-frame.pack(pady=20, padx=60, fill="both", expand=True)
+frame.grid(row=0, column=0)
 
 label_in = ctk.CTkLabel(master=frame, text="Input Video File:")
 label_in.pack(pady=12, padx=10)
@@ -83,6 +101,11 @@ button_compress.pack(pady=48, padx=10)
 
 label_status = ctk.CTkLabel(master=frame, text="")
 label_status.pack(pady=12, padx=10)
+
+console_frame = ctk.CTkFrame(master=root)
+console_frame.grid(row=0, column=1)
+console = ctk.CTkTextbox(master=console_frame, text_color="red", state="disabled", height=HEIGHT-100, width=WIDTH//2 + 150)
+console.pack(pady=12, padx=10)
 
 add_ffmpeg_to_path()
 
