@@ -1,0 +1,1 @@
+Upon first startup this program will download ffmpeg, which will take some time. Please wait a few minutes until reporting it as an error.
