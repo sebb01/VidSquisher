@@ -10,30 +10,30 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="Compress a video file using FFmpeg.")
-    parser.add_argument("inFile", help="File name (including extension)")
+    parser.add_argument("in_file", help="File name (including extension)")
     parser.add_argument("-s","--size", default=10, type=float, help="Target file size in MB. Default: 10 (for discord)")
     parser.add_argument("-a","--audio", default=None, type=int, help="Audio Bitrate in Kbits. Default: 128 (possibly lower to satisfy size limit)")
     parser.add_argument("-p", "--preset", default='fast', type=str, help="Encoding preset. Default: 'fast'")
     parser.add_argument("--safe", action='store_false', help="Add some overhead to avoid overshooting size limit. Default: True")
     parser.add_argument("--ss", help="Set a start time for trimming, in format HH:MM:SS.msecs")
     parser.add_argument("--to", help="Set a stop time for trimming, in format HH:MM:SS.msecs")
-    parser.add_argument("--outFile", type=str, help="Output file path. Default: 'Original_path (size)mb.mp4'")
+    parser.add_argument("--out_file", type=str, help="Output file path. Default: 'Original_path (size)mb.mp4'")
     parser.add_argument("--divisor", type=int, default=1, help="Divisor for resolution. Default: 1")
 
     args = parser.parse_args()
 
-    inFile = Path(args.inFile)
+    in_file = Path(args.in_file)
     size = args.size
     audio = args.audio
     preset = args.preset
     safe = args.safe
     start_time = args.ss
     stop_time = args.to
-    outFile = args.outFile
+    out_file = args.out_file
 
-    compress(inFile, size, audio, preset, safe, start_time, stop_time, outFile, args.divisor)
+    compress(in_file, size, audio, preset, safe, start_time, stop_time, out_file, args.divisor)
     
-def compress(inFile, size=10, audio=None, preset='fast', safe=True, start_time=None, stop_time=None, outFile=None, divisor=1):
+def compress(inFile, size=10, audio=None, preset='fast', safe=True, start_time=None, stop_time=None, out_file=None, divisor=1):
     length = float(ffmpeg.probe(inFile, cmd='ffprobe')["format"]["duration"]) # Get length from video metadata
     # Compute length after trimming
     if stop_time is not None:
@@ -59,15 +59,15 @@ def compress(inFile, size=10, audio=None, preset='fast', safe=True, start_time=N
         kb = kb_with_audio - audio*length
     kbs = kb // length
     
-    if outFile is None:
+    if out_file is None:
         inFileNameNoExt = Path(inFile).with_suffix('') # Remove extension from input file name
-        outFile = Path(f'{inFileNameNoExt} {size}mb.mp4') # Append size to name
+        out_file = Path(f'{inFileNameNoExt} {size}mb.mp4') # Append size to name
     
     # If outFile exists, append a unique number to prevent overwriting
     i = 1
-    outFileOriginal = Path(outFile).with_suffix('')
-    while (os.path.exists(outFile)):
-        outFile = Path(f'{outFileOriginal} ({i}).mp4')
+    outFileOriginal = Path(out_file).with_suffix('')
+    while (os.path.exists(out_file)):
+        out_file = Path(f'{outFileOriginal} ({i}).mp4')
         i+=1
 
     # Pass 1
@@ -96,9 +96,9 @@ def compress(inFile, size=10, audio=None, preset='fast', safe=True, start_time=N
     if audio > 0:
         del output_args["an"]
     print(output_args)
-    ffmpeg.input(inFile).output(str(outFile), **output_args).run()
+    ffmpeg.input(inFile).output(str(out_file), **output_args).run()
 
-    print(f"Saved new file as: {outFile}")
+    print(f"Saved new file as: {out_file}")
 
     # Clean up temporary files
     os.remove('ffmpeg2pass-0.log')
