@@ -25,6 +25,9 @@ def add_ffmpeg_to_path():
     if os.path.exists(os.path.join(os.curdir, "ffmpeg")):
         ffmpeg_folder = os.path.join(pathlib.Path().resolve(), "ffmpeg")
         ffmpeg_folder = os.path.join(ffmpeg_folder, "bin")
+        # Precede entry with semicolon if there is none
+        if os.environ["PATH"] != "" and os.environ["PATH"][-1] != ";":
+            os.environ["PATH"] += ";"
         os.environ["PATH"] += ffmpeg_folder + ";"
 
 def download_ffmpeg():
