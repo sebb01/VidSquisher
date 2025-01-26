@@ -1,1 +1,3 @@
-Upon first startup this program will download ffmpeg, which will take some time. Please wait a few minutes until reporting it as an error.
+# VidSquisher
+![Screenshot](screenshot.png)
+VidSquisher is a simple GUI around FFmpeg that aims to compress videos to specific file size limits. The backend is partially written by @BinaryCounter.

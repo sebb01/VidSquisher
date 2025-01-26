@@ -1,1 +1,1 @@
-pyinstaller --noconfirm --onedir --windowed --add-data "C:/Users/Sebb/vid-compress-ui/venv/Lib/site-packages/customtkinter;customtkinter/"  "./ui.py"
+pyinstaller --noconfirm --onedir --windowed --add-data "./venv/Lib/site-packages/customtkinter;customtkinter/" --name "VidSquisher" "./ui.py"

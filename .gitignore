@@ -3,3 +3,5 @@ build
 dist
 *.spec
 ffmpeg
+ffmpeg-R
+venv

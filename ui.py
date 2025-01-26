@@ -7,6 +7,7 @@ import traceback
 import urllib.request
 import zipfile
 
+VERSION = "0.2.2"
 WIDTH = 900
 HEIGHT = 480
 INPUT_WIDTH = 160
@@ -20,7 +21,13 @@ root = ctk.CTk()
 root.geometry(f"{WIDTH}x{HEIGHT}")
 root.title("VidSquisher")
 
+def ffmpeg_in_path():
+    return "ffmpeg" in os.popen("WHERE ffmpeg").read() and "ffprobe" in os.popen("WHERE ffprobe").read()
+
 def add_ffmpeg_to_path():
+    if ffmpeg_in_path():
+        printlog("FFmpeg found in PATH", text_color="green")
+        return
     # Add ffmpeg to PATH
     if os.path.exists(os.path.join(os.curdir, "ffmpeg")):
         ffmpeg_folder = os.path.join(pathlib.Path().resolve(), "ffmpeg")
@@ -28,7 +35,11 @@ def add_ffmpeg_to_path():
         # Precede entry with semicolon if there is none
         if os.environ["PATH"] != "" and os.environ["PATH"][-1] != ";":
             os.environ["PATH"] += ";"
+            printlog(f"Added semicolon to PATH")
         os.environ["PATH"] += ffmpeg_folder + ";"
+        printlog(f"Added {ffmpeg_folder} to PATH", text_color="green")
+    else:
+        printlog(f"FFmpeg not found in PATH or current directory (will be downloaded on first compression job)", text_color="yellow")
 
 def download_ffmpeg():
     # Get ffmpeg
@@ -54,7 +65,7 @@ def compress(size, audio, preset, overhead, divisor):
     out_file = entry_out.get()
     start_time = start_time_entry.get() or None
     stop_time = stop_time_entry.get() or None
-    if not os.path.exists(os.path.join(os.curdir, "ffmpeg")):
+    if not ffmpeg_in_path():
         threading.Thread(target=download_ffmpeg).start()
     else:
         threading.Thread(target=compress_thread, args=(in_file, out_file, size.get(), audio.get(), preset.get(), overhead.get(), start_time, stop_time, divisor.get())).start()
@@ -83,8 +94,7 @@ def browse():
 def printlog(text, text_color="red"):
     console.configure(state="normal")
     console.configure(text_color=text_color)
-    console.delete(1.0, ctk.END)
-    console.insert(1.0, text + "\n")
+    console.insert("end", text + "\n\n")
     console.configure(state="disabled")
 
 def hide_console():
@@ -188,6 +198,7 @@ console = ctk.CTkTextbox(master=console_frame, text_color="red", state="disabled
 console.pack(pady=12, padx=10)
 #--------------------------------------------------------------------------------------------------#
 
+printlog(f"VidSquisher v{VERSION} by Sebb", text_color="green")
 add_ffmpeg_to_path()
 
 root.mainloop()
